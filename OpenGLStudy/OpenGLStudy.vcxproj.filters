@@ -60,5 +60,11 @@
     <None Include="..\README.md">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="shaderScript\vertex\v_mix_rotate">
+      <Filter>资源文件\shaderScript\vertex</Filter>
+    </None>
+    <None Include="shaderScript\fragment\f_mix_rotate">
+      <Filter>资源文件\shaderScript\fragment</Filter>
+    </None>
   </ItemGroup>
 </Project>

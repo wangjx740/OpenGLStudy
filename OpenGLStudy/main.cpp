@@ -1,6 +1,11 @@
 #include <glad\glad.h>
 #include <GLFW\glfw3.h>
 
+#include <glm\glm.hpp>
+#include <glm\gtc\matrix_transform.hpp>
+#include <glm\gtc\type_ptr.hpp>
+
+#define PI 3.14159265359
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb\stb_image.h>
 
@@ -50,7 +55,8 @@ int main()
 
 	// build and compile our shader zprogram
 	// ------------------------------------
-	Shader ourShader("shaderScript/vertex/v_mix", "shaderScript/fragment/f_mix");
+	//Shader ourShader("shaderScript/vertex/v_mix", "shaderScript/fragment/f_mix");
+	Shader ourShader("shaderScript/vertex/v_mix_rotate", "shaderScript/fragment/f_mix_rotate");
 
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 	// ------------------------------------------------------------------
@@ -169,6 +175,28 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, texture1);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
+
+		// create transformations
+		// first container
+		// ---------------
+		glm::mat4 transform = glm::mat4(1.0f); // init uniform matrix  
+		//transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+		//transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+		// 
+		transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+		transform = glm::translate(transform, glm::vec3(0.1f, -0.1f, 0.0f));
+
+		// get matrix's uniform location and set matrix
+		ourShader.use();
+		unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+		// second transformation
+		// ---------------------
+		transform = glm::mat4(1.0f); // reset it to an identity matrix
+		transform = glm::translate(transform, glm::vec3(-0.5f, 0.5f, 0.0f));
+		float scaleAmount = sin(glfwGetTime());
+		transform = glm::scale(transform, glm::vec3(scaleAmount, scaleAmount, scaleAmount));
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, &transform[0][0]);
 
 		// render container
 		ourShader.use();
