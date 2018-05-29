@@ -57,5 +57,8 @@
     <None Include="shaderScript\fragment\f_mix">
       <Filter>资源文件\shaderScript\fragment</Filter>
     </None>
+    <None Include="..\README.md">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -133,6 +133,7 @@
     <Image Include="image\wall.jpg" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\README.md" />
     <None Include="shaderScript\fragment\f_mix" />
     <None Include="shaderScript\vertex\v_mix" />
   </ItemGroup>
