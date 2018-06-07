@@ -135,8 +135,10 @@
   <ItemGroup>
     <None Include="..\README.md" />
     <None Include="shaderScript\fragment\f_mix" />
+    <None Include="shaderScript\fragment\f_mix_3D" />
     <None Include="shaderScript\fragment\f_mix_rotate" />
     <None Include="shaderScript\vertex\v_mix" />
+    <None Include="shaderScript\vertex\v_mix_3D" />
     <None Include="shaderScript\vertex\v_mix_rotate" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -66,5 +66,11 @@
     <None Include="shaderScript\fragment\f_mix_rotate">
       <Filter>资源文件\shaderScript\fragment</Filter>
     </None>
+    <None Include="shaderScript\vertex\v_mix_3D">
+      <Filter>资源文件\shaderScript\vertex</Filter>
+    </None>
+    <None Include="shaderScript\fragment\f_mix_3D">
+      <Filter>资源文件\shaderScript\fragment</Filter>
+    </None>
   </ItemGroup>
 </Project>
