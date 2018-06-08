@@ -19,6 +19,13 @@ void processInput(GLFWwindow *window);
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+// camera settings
+glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f, 0.0f);
+// timing
+float deltaTime = 0.0f;	// time between current frame and last frame
+float lastFrame = 0.0f;
 
 int main()
 {
@@ -59,8 +66,8 @@ int main()
 	// build and compile our shader zprogram
 	// ------------------------------------
 	//Shader ourShader("shaderScript/vertex/v_mix", "shaderScript/fragment/f_mix");
-	Shader ourShader("shaderScript/vertex/v_mix_3D", "shaderScript/fragment/f_mix_3D");
-
+	//Shader ourShader("shaderScript/vertex/v_mix_3D", "shaderScript/fragment/f_mix_3D");
+	Shader ourShader("shaderScript/vertex/v_camera_3D", "shaderScript/fragment/f_camera_3D");
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 	// ------------------------------------------------------------------
 	float vertices[] = {
@@ -106,6 +113,20 @@ int main()
 		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
 		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+	};
+
+	// world space positions of our cubes
+	glm::vec3 cubePositions[] = {
+		glm::vec3(0.0f,  0.0f,  0.0f),
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
 	unsigned int VBO, VAO;
@@ -196,6 +217,10 @@ int main()
 		// input
 		// -----
 		processInput(window);
+		// caculate frame delta time 
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
 
 		// render
 		// ------
@@ -235,10 +260,14 @@ int main()
 		//model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
 		//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(1.0f, 0.0f, 0.0f));
 
-		// use view matrix  -- transform world coordinate to eye(/view) coordinate
+		// use view matrix  -- transform world coordinate to eye(camera || view) coordinate
 		glm::mat4 view = glm::mat4(1.0f);
-		//view = glm::translate(view, glm::vec3(glm::sin((float) glfwGetTime()), glm::cos((float)glfwGetTime()), -3.0f));
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f + glm::sin((float)glfwGetTime())));
+		float radius = 3.0f;
+		float cameraX = radius * glm::cos((float)glfwGetTime());
+		float cameraZ = radius * glm::sin((float)glfwGetTime());
+		view = glm::lookAt(glm::vec3(cameraX, 0.0f, cameraZ), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		//view = glm::lookAt(cameraPos, cameraFront, cameraUp);
+
 		// use projection matrix -- transform eye coordinate to clip coordinate
 		glm::mat4 projection = glm::mat4(1.0f);
 		projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -256,12 +285,12 @@ int main()
 		ourShader.use();
 		glBindVertexArray(VAO);
 		//glDrawArrays(GL_TRIANGLES, 0, 36);
-		for (unsigned int i = 0; i < 16; i++)
+		for (unsigned int i = 0; i < 10; i++)
 		{
 			// calculate the model matrix for each object and pass it to shader before drawing
 			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, glm::vec3(i * 0.2f - 1.5f, 0.0f, 0.0f));
-			model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
+			model = glm::translate(model, cubePositions[i]);
+			//model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
 			//model = glm::rotate(model, glm::sin((float)glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
 
 			float angle = 20.0f * i;
@@ -296,8 +325,58 @@ int main()
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window)
 {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	float angularSpeed = 2.5f * deltaTime;
+	float cameraSpeed = 2.5 * deltaTime;
+	float radius = glm::length(cameraPos - cameraFront);
+
+	//float curAngle = glm::asin(,);
+
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
+	}
+	else if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		cameraPos += cameraSpeed * cameraFront;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		cameraPos -= cameraSpeed * cameraFront;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	{
+		//           world x positive direction normalize vector   
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+		//           world x positive direction normalize vector   
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+	{
+		// left rotate transform  
+		std::cout << "left rotate transform  " << angularSpeed << std::endl;
+		float cameraX = glm::cos(angularSpeed) * radius;
+		float cameraZ = glm::sin(angularSpeed) * radius;
+		std::cout << "left rotate transform  cameraX " << cameraX;
+		std::cout << "  cameraPos.y  " << cameraPos.y;
+		std::cout << "  cameraZ  " << cameraZ << std::endl;
+
+		cameraPos = glm::vec3(cameraPos.x + cameraX, cameraPos.y, cameraPos.z + cameraZ);
+	}
+	else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+	{
+		// right rotate transform  
+		std::cout << "left rotate transform  " << angularSpeed << std::endl;
+		float cameraX = glm::cos(- angularSpeed) * radius;
+		float cameraZ = glm::sin(- angularSpeed) * radius;
+
+		std::cout << "right rotate transform  cameraX " << cameraX;
+		std::cout << "  cameraPos.y  " << cameraPos.y;
+		std::cout << "  cameraZ  " << cameraZ << std::endl;
+
+		cameraPos = glm::vec3(cameraPos.x + cameraX, cameraPos.y, cameraPos.z + cameraZ);
+	}
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
