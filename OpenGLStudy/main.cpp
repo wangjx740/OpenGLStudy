@@ -15,6 +15,8 @@
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -23,6 +25,15 @@ const unsigned int SCR_HEIGHT = 600;
 glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f, 0.0f);
+
+bool firstMouse = true;
+bool mouseCtrl = false;
+float yaw = -90.0f;	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
+float pitch = 0.0f;
+float lastX = 800.0f / 2.0;
+float lastY = 600.0 / 2.0;
+float fov = 45.0f;
+
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
@@ -50,7 +61,13 @@ int main()
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
+
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+
+	// tell GLFW to capture our mouse
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// glad: load all OpenGL function pointers
 	// ---------------------------------------
@@ -262,15 +279,12 @@ int main()
 
 		// use view matrix  -- transform world coordinate to eye(camera || view) coordinate
 		glm::mat4 view = glm::mat4(1.0f);
-		float radius = 3.0f;
-		float cameraX = radius * glm::cos((float)glfwGetTime());
-		float cameraZ = radius * glm::sin((float)glfwGetTime());
-		view = glm::lookAt(glm::vec3(cameraX, 0.0f, cameraZ), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		//view = glm::lookAt(cameraPos, cameraFront, cameraUp);
+		//lookAt param :   camera-pos       target-pos       world-up-vector
+		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 		// use projection matrix -- transform eye coordinate to clip coordinate
 		glm::mat4 projection = glm::mat4(1.0f);
-		projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		// set opengl context
 		//unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "modle");
 		unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
@@ -323,59 +337,86 @@ int main()
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
+float curAngular = 90.00f;
+float curAngularInPos = -90.0f;
+
 void processInput(GLFWwindow *window)
 {
-	float angularSpeed = 2.5f * deltaTime;
+	//float angularSpeed = 2.5f * deltaTime;
 	float cameraSpeed = 2.5 * deltaTime;
-	float radius = glm::length(cameraPos - cameraFront);
-
-	//float curAngle = glm::asin(,);
+	float radius = 4.0f;
+	glm::vec3 center = cameraFront;
 
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
 	}
 	else if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
+		// turn forward translation  
 		cameraPos += cameraSpeed * cameraFront;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
+		// turn backward translation  
 		cameraPos -= cameraSpeed * cameraFront;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		//           world x positive direction normalize vector   
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		if (mouseCtrl)
+		{
+			std::cout << "is in mouseCtrl" << std::endl;
+			return;
+		}
+		// left rotate transform  
+		curAngularInPos -= 180.0f * deltaTime;
+		float x = glm::cos(glm::radians(curAngularInPos)) * radius;
+		float z = glm::sin(glm::radians(curAngularInPos)) * radius;
+		cameraFront = glm::normalize(glm::vec3(cameraFront.x + x, cameraFront.y, cameraFront.z + z));
 	}
 	else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		//           world x positive direction normalize vector   
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		if (mouseCtrl)
+		{
+			std::cout << "is in mouseCtrl" << std::endl;
+			return;
+		}
+		// right rotate transform  
+		curAngularInPos += 180.0f * deltaTime;
+		float x = glm::cos(glm::radians(curAngularInPos)) * radius;
+		float z = glm::sin(glm::radians(curAngularInPos)) * radius;
+		cameraFront = glm::normalize(glm::vec3(cameraFront.x + x, cameraFront.y, cameraFront.z + z));
 	}
 	else if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
 	{
-		// left rotate transform  
-		std::cout << "left rotate transform  " << angularSpeed << std::endl;
-		float cameraX = glm::cos(angularSpeed) * radius;
-		float cameraZ = glm::sin(angularSpeed) * radius;
-		std::cout << "left rotate transform  cameraX " << cameraX;
-		std::cout << "  cameraPos.y  " << cameraPos.y;
-		std::cout << "  cameraZ  " << cameraZ << std::endl;
-
-		cameraPos = glm::vec3(cameraPos.x + cameraX, cameraPos.y, cameraPos.z + cameraZ);
+		// turn left translation  
+		// glm::cross(cameraFront, cameraUp) = glm::cross(cameraUp, cameraFront) is +x direction  
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
 	{
-		// right rotate transform  
-		std::cout << "left rotate transform  " << angularSpeed << std::endl;
-		float cameraX = glm::cos(- angularSpeed) * radius;
-		float cameraZ = glm::sin(- angularSpeed) * radius;
+		// turn right translation  
+		// glm::cross(cameraFront, cameraUp) = glm::cross(cameraUp, cameraFront) is +x direction  
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+		// camera Up transform 
+		cameraPos += glm::normalize(cameraUp) * cameraSpeed;
+	}
+	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+	{
+		std::cout << "FIRE ONCE" << std::endl;
+	}
+	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+	{
+		std::cout << "on mouse ctrl" << std::endl;
+		mouseCtrl = true;
+	}
 
-		std::cout << "right rotate transform  cameraX " << cameraX;
-		std::cout << "  cameraPos.y  " << cameraPos.y;
-		std::cout << "  cameraZ  " << cameraZ << std::endl;
-
-		cameraPos = glm::vec3(cameraPos.x + cameraX, cameraPos.y, cameraPos.z + cameraZ);
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE)
+	{
+		std::cout << "off mouse ctrl" << std::endl;
+		mouseCtrl = false;
 	}
 }
 
@@ -386,4 +427,59 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	// make sure the viewport matches the new window dimensions; note that width and 
 	// height will be significantly larger than specified on retina displays.
 	glViewport(0, 0, width, height);
+}
+
+// glfw: whenever the mouse moves, this callback is called
+// -------------------------------------------------------
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	if (!mouseCtrl)
+	{
+		return;
+	}
+
+	std::cout << "mouseCtrl true " << "xpos " << xpos << "ypos " << ypos << std::endl;
+
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+	lastX = xpos;
+	lastY = ypos;
+
+	float sensitivity = 0.5f; // change this value to your liking
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	yaw += xoffset;
+	pitch += yoffset;
+
+	// make sure that when pitch is out of bounds, screen doesn't get flipped
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+
+	glm::vec3 front;
+	front.x = glm::cos(glm::radians(yaw)) * glm::cos(glm::radians(pitch));
+	front.y = glm::sin(glm::radians(pitch));
+	front.z = glm::sin(glm::radians(yaw)) * glm::cos(glm::radians(pitch));
+	cameraFront = glm::normalize(front);
+}
+
+// glfw: whenever the mouse scroll wheel scrolls, this callback is called
+// ----------------------------------------------------------------------
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	if (fov >= 1.0f && fov <= 45.0f)
+		fov -= yoffset;
+	if (fov <= 1.0f)
+		fov = 1.0f;
+	if (fov >= 45.0f)
+		fov = 45.0f;
 }
