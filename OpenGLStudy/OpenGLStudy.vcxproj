@@ -127,6 +127,8 @@
   <ItemGroup>
     <ClInclude Include="header\camera.h" />
     <ClInclude Include="header\shader.h" />
+    <ClInclude Include="header\texture_loader.h" />
+    <ClInclude Include="header\vertices.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="image\awesomeface.png" />

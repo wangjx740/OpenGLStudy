@@ -41,6 +41,12 @@
     <ClInclude Include="header\camera.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="header\vertices.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="header\texture_loader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="image\awesomeface.png">
