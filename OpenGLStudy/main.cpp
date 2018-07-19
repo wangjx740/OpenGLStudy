@@ -24,10 +24,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 // camera settings
-//glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f, 3.0f);
-//glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-//glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f, 0.0f);
-
 // new camera obj
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
@@ -36,10 +32,6 @@ bool mouseCtrl = false;
 
 float lastX = SCR_WIDTH / 2.0;
 float lastY = SCR_HEIGHT / 2.0;
-
-//float yaw = -90.0f;	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
-//float pitch = 0.0f;
-//float fov = 45.0f;
 
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
