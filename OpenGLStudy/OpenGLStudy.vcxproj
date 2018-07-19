@@ -125,6 +125,7 @@
     <ClCompile Include="src\glad.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="header\camera.h" />
     <ClInclude Include="header\shader.h" />
   </ItemGroup>
   <ItemGroup>

@@ -38,6 +38,9 @@
     <ClInclude Include="header\shader.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="header\camera.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="image\awesomeface.png">
